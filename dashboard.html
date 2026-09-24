@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>แดชบอร์ด True x Makro</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --true-red:#E3001B; --true-red-dark:#B8000F; --red-bg:#FDEEF0;
+  /* สีแบรนด์ของพาร์ทเนอร์ ใช้กับป้ายชื่อบนหัวเว็บเท่านั้น — แก้ตรงนี้ที่เดียว */
+  --partner:#1A1A1A; --partner-bg:#FFFFFF;
+  /* สีเขียวใช้บอก "สำเร็จ / ปิดได้" ไม่ใช่สีแบรนด์ */
+  --lotus-green:#00833E; --lotus-green-light:#E6F4EA;
+  --ink:#1A1A1A; --muted:#7A7A7A; --line:#E8E5E0;
+  --bg:#F7F5F2; --card:#FFFFFF;
+  --amber:#B8621B; --amber-bg:#FDF3E3;
+  --blue:#2563C9; --blue-bg:#EAF1FD;
+  --grey:#B4B2A9;
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+body{
+  font-family:'Kanit','Noto Sans Thai',sans-serif;
+  background:var(--bg); color:var(--ink);
+  font-size:14px; line-height:1.5;
+  padding-bottom:34px;
+}
+
+/* ---------- Header ---------- */
+header{
+  position:relative;
+  background:linear-gradient(135deg,var(--true-red),var(--true-red-dark));
+  color:#fff; padding:16px 16px 20px; border-radius:0 0 18px 18px;
+}
+.refresh-btn{
+  position:absolute; top:16px; right:14px;
+  width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+  border:1px solid rgba(255,255,255,.35); border-radius:50%;
+  background:rgba(255,255,255,.14); color:#fff; font-size:15px;
+  cursor:pointer; padding:0; line-height:1;
+}
+.refresh-btn:active{background:rgba(255,255,255,.3);}
+.refresh-btn.spin{animation:spin .9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.brand{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+.brand .t{font-weight:700; font-size:15px; letter-spacing:.3px;}
+.brand .x{opacity:.7; font-size:12px;}
+.brand .l{background:var(--partner-bg); color:var(--partner); font-weight:700; font-size:12px; padding:3px 10px; border-radius:20px;}
+h1{font-size:19px; font-weight:600;}
+.updated{font-size:11.5px; opacity:.85; margin-top:3px;}
+
+/* ---------- Filters ---------- */
+.filters{
+  background:var(--card); margin:-10px 12px 0; border-radius:14px;
+  padding:11px 12px; display:flex; gap:8px; box-shadow:0 2px 10px rgba(0,0,0,.06);
+  position:relative; z-index:2;
+}
+.filters select{
+  flex:1; min-width:0; font-family:inherit; font-size:12.5px; padding:8px 9px;
+  border:1.5px solid var(--line); border-radius:9px; background:#fff; color:var(--ink);
+}
+
+/* ---------- Tabs ---------- */
+.tabs{
+  display:flex; gap:6px; padding:14px 12px 4px; overflow-x:auto;
+}
+.tabs button{
+  flex:1; white-space:nowrap; font-family:inherit; font-size:13px; font-weight:600;
+  padding:9px 10px; border:none; border-radius:20px; background:#EDEAE5; color:var(--muted);
+  cursor:pointer;
+}
+.tabs button.active{background:var(--true-red); color:#fff;}
+
+/* ---------- Layout ---------- */
+main{padding:8px 12px 0;}
+section{display:none;} section.active{display:block;}
+.card{background:var(--card); border-radius:14px; padding:14px; margin-bottom:12px;}
+.card h2{font-size:13px; font-weight:600; color:var(--muted); margin-bottom:3px;}
+.card .sub{font-size:11px; color:var(--muted); margin-bottom:10px;}
+
+.kpis{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;}
+.kpi{background:var(--card); border-radius:14px; padding:13px;}
+.kpi .lbl{font-size:11.5px; color:var(--muted); line-height:1.35; min-height:31px;}
+.kpi .val{font-size:25px; font-weight:600; margin-top:2px; line-height:1.1;}
+.kpi .unit{font-size:12px; color:var(--muted); font-weight:400;}
+.kpi.green .val{color:var(--lotus-green);}
+.kpi.blue .val{color:var(--blue);}
+.kpi.warn{background:var(--amber-bg);} .kpi.warn .lbl,.kpi.warn .val{color:var(--amber);}
+
+/* ---------- Bars ---------- */
+.wkchart{display:flex; align-items:flex-end; gap:8px; height:96px; border-bottom:1px solid var(--line);}
+.wkcol{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+.wkcol .n{font-size:10.5px; color:var(--muted); margin-bottom:3px;}
+.wkcol .bar{width:100%; border-radius:4px 4px 0 0; min-height:2px;}
+.wklabels{display:flex; gap:8px; margin-top:6px;}
+.wklabels div{flex:1; text-align:center; font-size:9.5px; color:var(--muted); line-height:1.35;}
+
+.row{display:flex; align-items:center; gap:8px; margin-bottom:9px;}
+.row .nm{width:92px; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.row .track{flex:1; height:16px; background:#F1EEE9; border-radius:3px; overflow:hidden; display:flex;}
+.row .v{width:32px; text-align:right; font-size:12px; color:var(--muted);}
+
+.legend{display:flex; gap:11px; flex-wrap:wrap; margin-top:10px; padding-top:10px; border-top:1px solid var(--line);}
+.legend div{display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted);}
+.legend span{width:9px; height:9px; border-radius:2px;}
+
+/* ---------- Table ---------- */
+table{width:100%; border-collapse:collapse;}
+th{font-size:10px; color:var(--muted); font-weight:500; text-align:right; padding-bottom:7px; border-bottom:1px solid var(--line);}
+th:first-child{text-align:left;}
+td{font-size:12.5px; text-align:right; padding:9px 0; border-bottom:1px solid var(--line);}
+td:first-child{text-align:left;}
+tr:last-child td{border-bottom:none;}
+.nm2{font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:118px;}
+.sub2{font-size:10px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:118px;}
+.rank{color:var(--muted); font-size:11px; width:16px;}
+.hot{color:var(--amber); font-weight:600;}
+.zero{color:var(--muted);}
+
+.stack{display:flex; height:20px; border-radius:4px; overflow:hidden; background:#F1EEE9;}
+
+.state{text-align:center; padding:40px 20px; color:var(--muted); font-size:13.5px;}
+.state button{
+  margin-top:12px; font-family:inherit; font-size:13px; font-weight:600; padding:9px 18px;
+  border:none; border-radius:10px; background:var(--true-red); color:#fff; cursor:pointer;
+}
+.empty{text-align:center; color:var(--muted); font-size:12px; padding:16px 0;}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="refresh-btn" id="refresh-btn" onclick="load(true)" title="ดึงข้อมูลล่าสุดจากชีต" aria-label="ดึงข้อมูลล่าสุดจากชีต">⟳</button>
+  <div class="brand"><span class="t">true</span><span class="x">&times;</span><span class="l">Makro</span></div>
+  <h1>แดชบอร์ด Lead</h1>
+  <div class="updated" id="updated">กำลังโหลด...</div>
+</header>
+
+<div class="filters">
+  <select id="f-week"><option value="8">8 สัปดาห์ล่าสุด</option></select>
+  <select id="f-prov"><option value="">ทุกจังหวัด</option></select>
+</div>
+
+<div class="tabs">
+  <button class="active" data-p="overview">ภาพรวม</button>
+  <button data-p="true">ทีมทรู</button>
+  <button data-p="lotus">ทีม Makro</button>
+</div>
+
+<main>
+  <div id="loading" class="state">⏳ กำลังโหลดข้อมูล...</div>
+  <div id="error" class="state" style="display:none;">
+    <div id="error-msg">เชื่อมต่อไม่สำเร็จ</div>
+    <button onclick="load(true)">ลองใหม่</button>
+  </div>
+
+  <div id="content" style="display:none;">
+
+    <!-- ============ ภาพรวม ============ -->
+    <section id="p-overview" class="active">
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">Lead ทั้งหมด</div><div class="val" id="o-total">0</div></div>
+        <div class="kpi green">
+          <div class="lbl">ปิดเน็ตทรูได้ทั้งหมด <span style="font-size:10.5px;">· รวมทุกช่องทาง</span></div>
+          <div class="val" id="o-true">0 <span class="unit">ราย</span></div>
+        </div>
+        <div class="kpi green"><div class="lbl">ปิดขายแม็คโครได้</div><div class="val" id="o-closed">0 <span class="unit">ราย</span></div></div>
+        <div class="kpi"><div class="lbl">มูลค่าตะกร้ารวม</div><div class="val" id="o-basket">฿0</div></div>
+      </div>
+
+      <div class="kpi warn" style="margin-bottom:12px;">
+        <div class="lbl">⏱ ค้างรอดำเนินการเกิน 3 วัน</div>
+        <div class="val" id="o-sla">0 <span class="unit" style="color:inherit;">ราย</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Lead ต่อสัปดาห์</h2>
+        <div class="wkchart" id="o-wkchart"></div>
+        <div class="wklabels" id="o-wklabels"></div>
+      </div>
+
+      <div class="card">
+        <h2>Lead แยกตามสาขา</h2>
+        <div class="sub">สีในแท่งคือสัปดาห์ ดูได้ว่าสาขาไหนไม่ได้ออกเดิน</div>
+        <div id="o-branches"></div>
+        <div class="legend" id="o-legend"></div>
+      </div>
+    </section>
+
+    <!-- ============ ทีมทรู ============ -->
+    <section id="p-true">
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">เซลที่ออกเดิน</div><div class="val" id="t-people">0 <span class="unit">คน</span></div></div>
+        <div class="kpi"><div class="lbl">เฉลี่ยจำนวนลีดต่อคน</div><div class="val" id="t-avg">0</div></div>
+        <div class="kpi green"><div class="lbl">ปิดเน็ตทรูได้</div><div class="val" id="t-closed">0 <span class="unit">ราย</span></div></div>
+        <div class="kpi blue"><div class="lbl">รอตัดสินใจเน็ตทรู</div><div class="val" id="t-wait">0 <span class="unit">ราย</span></div></div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi" id="t-outside-card" style="display:none;">
+          <div class="lbl">ยอดรวมนอกพื้นที่ <span style="font-size:10.5px;">· กรอกจากชีต</span></div>
+          <div class="val" id="t-outside">0 <span class="unit">ราย</span></div>
+        </div>
+        <div class="kpi green">
+          <div class="lbl">ปิดได้จากลูกค้ารอตัดสินใจ <span style="font-size:10.5px;">· กรอกจากชีต</span></div>
+          <div class="val" id="t-decided">0 <span class="unit">ราย</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>ปิดเน็ตทรูได้ · รายสัปดาห์</h2>
+        <div class="sub">ตัวเลขบนแท่งคือจำนวนที่ปิดได้ · ตัวเลขใต้ชื่อคือ Lead ทั้งหมดของสัปดาห์นั้น</div>
+        <div class="wkchart" id="t-wkchart"></div>
+        <div class="wklabels" id="t-wklabels"></div>
+      </div>
+
+      <div class="card">
+        <h2>ปิดเน็ตทรูได้ · แยกตามสาขาแม็คโคร</h2>
+        <div class="sub">เซลทรูที่ประจำหน้าสาขานี้ ปิดเน็ตทรูได้กี่ราย · ตัวเลขใต้ชื่อคือ Lead ทั้งหมดของสาขา</div>
+        <div id="t-provs"></div>
+      </div>
+
+      <div class="card">
+        <h2>อันดับเซล · เก็บ Lead มากที่สุด</h2>
+        <div class="sub" id="t-share"></div>
+        <table>
+          <thead><tr>
+            <th style="width:16px;">#</th><th>ชื่อ · ภูมิภาค · สาขา</th>
+            <th style="width:40px;">Lead</th>
+          </tr></thead>
+          <tbody id="t-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ ทีม Makro ============ -->
+    <section id="p-lotus">
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">ดำเนินการแล้ว</div><div class="val" id="l-contacted">0 <span class="unit">ราย</span></div></div>
+        <div class="kpi green"><div class="lbl">ปิดการขายสำเร็จ</div><div class="val" id="l-closed">0 <span class="unit">ราย</span></div></div>
+        <div class="kpi blue"><div class="lbl">อยู่ระหว่างดำเนินงาน</div><div class="val" id="l-progress">0 <span class="unit">ราย</span></div></div>
+        <div class="kpi"><div class="lbl">เป็นลูกค้าอยู่แล้ว</div><div class="val" id="l-member">0 <span class="unit">ราย</span></div></div>
+        <div class="kpi"><div class="lbl">ปิดไม่สำเร็จ</div><div class="val" id="l-lost">0 <span class="unit">ราย</span></div></div>
+        <div class="kpi"><div class="lbl">หลีดซ้ำ</div><div class="val" id="l-dup">0 <span class="unit">ราย</span></div></div>
+        <div class="kpi"><div class="lbl">รอดำเนินการ</div><div class="val" id="l-pending">0 <span class="unit">ราย</span></div></div>
+        <div class="kpi warn"><div class="lbl">รอดำเนินการเกิน 3 วัน</div><div class="val" id="l-sla">0 <span class="unit" style="color:inherit;">ราย</span></div></div>
+      </div>
+
+      <div class="card">
+        <h2>สัดส่วนสถานะทั้งหมด</h2>
+        <div class="stack" id="l-stack"></div>
+        <div class="legend" id="l-legend"></div>
+      </div>
+
+      <div class="card">
+        <h2>สรุปรายสาขา</h2>
+        <div class="sub">สาขาใหม่จะขึ้นมาเองอัตโนมัติ</div>
+        <table>
+          <thead><tr>
+            <th>สาขา</th><th style="width:34px;">Lead</th>
+            <th style="width:40px;">ลูกค้า<br>เดิม</th><th style="width:34px;">รอ<br>ดำเนินการ</th><th style="width:44px;">ค้างเกิน<br>3 วัน</th>
+          </tr></thead>
+          <tbody id="l-table"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+// ================= ตั้งค่า =================
+// ⚠️ ต้องแก้ก่อนใช้งาน: วาง Web App URL เดียวกับใน index.html
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwVza93HvMQTgUF8RNl_9cg1ENlSI4LjnI8Qzr87U7mIIuyPyfzfYGgt97RmVECR0k/exec';
+
+// สัปดาห์ที่ 1 เริ่มวันจันทร์ที่ 10 ส.ค. 2026 (ต้องตรงกับ WEEK1_START ใน Apps Script)
+const WEEK1_START = new Date(2026, 7, 10);
+
+const SLA_DAYS = 3;
+const WEEK_COLORS = ['#378ADD','#1D9E75','#D85A30','#8B5CF6','#0E9BA8','#C2185B','#F0A500','#5B6BC0'];
+const TH_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+// ดัชนีของ rows ที่ backend ส่งมา
+const C_WEEK=0, C_BRANCH=1, C_SALE=2, C_STATUS=3, C_TRUE=4, C_BASKET=5, C_AGE=6;
+
+// สถานะที่ถือว่า "ยังไม่ได้ติดต่อ" — รับได้ทั้งคำเก่าและคำใหม่
+// เผื่อวันหน้าเปลี่ยน dropdown ในชีตเป็น "รอติดต่อ" แดชบอร์ดจะยังนับถูกทันที ไม่ต้องแก้โค้ด
+// ---------- การจัดกลุ่มสถานะ ----------
+// แต่ละกลุ่มรับได้ทั้งคำใหม่และคำเก่า เพราะข้อมูลเดิมในชีตไม่ได้แก้ย้อนหลัง
+// ตัวแรกของแต่ละชุดคือคำปัจจุบันที่ใช้ใน dropdown ที่เหลือคือคำเก่าที่ยังค้างอยู่
+const PENDING_STATUSES  = ['รอดำเนินการ', 'รอโทร', 'รอติดต่อ'];
+const CLOSED_STATUSES   = ['ปิดการขายสำเร็จ'];
+const LOST_STATUSES     = ['ปิดไม่สำเร็จ', 'ปิดการขายไม่สำเร็จ', 'ไม่รับสาย'];
+const MEMBER_STATUSES   = ['เป็นลูกค้าอยู่แล้ว', 'เป็นสมาชิกอยู่แล้ว'];
+const PROGRESS_STATUSES = ['อยู่ระหว่างการดำเนินงาน'];
+const DUP_STATUSES      = ['หลีดซ้ำ'];
+
+const inList = (st, arr) => arr.indexOf(String(st||'').trim()) !== -1;
+const isPending = st => inList(st, PENDING_STATUSES);
+
+let DATA = null;
+
+// ================= โหลดข้อมูล =================
+async function load(fresh){
+  if(GAS_URL.includes('PUT_YOUR_DEPLOYED_URL_HERE')){
+    document.getElementById('error-msg').textContent = 'ยังไม่ได้ตั้งค่า GAS_URL ในไฟล์ dashboard.html';
+    show('error');
+    return;
+  }
+  const btn = document.getElementById('refresh-btn');
+  if(btn) btn.classList.add('spin');
+  show('loading');
+  try{
+    const url = GAS_URL + '?action=dashboard' + (fresh ? '&fresh=1' : '');
+    const json = await fetchRetry_(url);
+    if(!json.ok) throw new Error(json.error || 'ข้อมูลไม่ถูกต้อง');
+    DATA = json;
+    buildFilters();
+    render();
+    show('content');
+  }catch(err){
+    document.getElementById('error-msg').textContent = 'เชื่อมต่อไม่สำเร็จ · ' + (err.message || 'ตรวจสอบอินเทอร์เน็ต');
+    show('error');
+  }finally{
+    if(btn) btn.classList.remove('spin');
+  }
+}
+
+// รอไม่เกิน 25 วิ ถ้าพลาดลองซ้ำอีก 2 ครั้ง
+// ใช้ Promise.race แทน AbortController เพราะบางสภาพแวดล้อม (เช่นหน้าพรีวิวในแชท)
+// ส่ง AbortSignal ข้ามกล่องไม่ได้ แล้วจะพังตั้งแต่ยังไม่ได้ยิงออกไป
+// credentials:'omit' = ไม่แนบข้อมูลล็อกอิน Google ไปด้วย
+// ระบบเปิดให้ "ทุกคน" อยู่แล้วจึงไม่ต้องใช้ และถ้าแนบไป คนที่ล็อกอินหลายบัญชี
+// จะได้หน้า error ของ Google กลับมาแทนข้อมูล
+// ถ้าได้ของที่ไม่ใช่ JSON กลับมา ก็ถือว่าพลาดแล้วลองใหม่ (ปัญหาชั่วคราวฝั่ง Google มักหายเมื่อลองซ้ำ)
+async function fetchRetry_(url){
+  let lastErr;
+  for(let i=0;i<3;i++){
+    try{
+      const res = await Promise.race([
+        fetch(url, { credentials:'omit' }),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('หมดเวลารอ')), 25000))
+      ]);
+      const text = await res.text();
+      try{ return JSON.parse(text); }
+      catch(parseErr){ throw new Error('ระบบของ Google ตอบกลับผิดรูปแบบ'); }
+    }catch(e){
+      lastErr = e;
+      if(i<2) await new Promise(r=>setTimeout(r, 1500*(i+1)));
+    }
+  }
+  throw lastErr;
+}
+
+function show(which){
+  ['loading','error','content'].forEach(id=>{
+    document.getElementById(id).style.display = (id===which) ? (id==='content'?'block':'block') : 'none';
+  });
+}
+
+// ================= ตัวกรอง =================
+function buildFilters(){
+  const weeks = [...new Set(DATA.rows.map(r=>r[C_WEEK]))].sort((a,b)=>a-b);
+  const maxWeek = weeks.length ? weeks[weeks.length-1] : 1;
+
+  const wk = document.getElementById('f-week');
+  wk.innerHTML = '<option value="8">8 สัปดาห์ล่าสุด</option><option value="4">4 สัปดาห์ล่าสุด</option><option value="0">ทุกสัปดาห์</option>';
+
+  // รายชื่อจังหวัด ดึงจากสาขาที่มี Lead จริง ไม่ได้พิมพ์ฝังไว้
+  // สาขาที่ยังไม่ได้ระบุจังหวัดในชีต จะถูกรวมเป็น "ไม่ระบุจังหวัด"
+  const pv = document.getElementById('f-prov');
+  const usedProvs = [...new Set(DATA.rows.map(r=>provOf(r[C_BRANCH])))].sort((a,b)=>
+    a==='ไม่ระบุจังหวัด' ? 1 : b==='ไม่ระบุจังหวัด' ? -1 : a.localeCompare(b,'th'));
+  pv.innerHTML = '<option value="">ทุกจังหวัด</option>' +
+    usedProvs.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+
+  wk.onchange = pv.onchange = render;
+  DATA.maxWeek = maxWeek;
+}
+
+function filtered(){
+  const nWeeks = Number(document.getElementById('f-week').value);
+  const prov = document.getElementById('f-prov').value;
+  let rows = DATA.rows;
+  if(nWeeks > 0) rows = rows.filter(r => r[C_WEEK] > DATA.maxWeek - nWeeks);
+  if(prov !== '') rows = rows.filter(r => provOf(r[C_BRANCH]) === prov);
+  return rows;
+}
+
+// จังหวัดของสาขา อ่านจากคอลัมน์ Province ในแท็บ Branches
+function provOf(branchIdx){
+  const list = DATA.provinces || [];
+  const p = String(list[branchIdx] || '').trim();
+  return p || 'ไม่ระบุจังหวัด';
+}
+
+// ================= วาดทุกหน้า =================
+function render(){
+  const rows = filtered();
+  const weeks = [...new Set(rows.map(r=>r[C_WEEK]))].sort((a,b)=>a-b);
+  const wkColor = {};
+  weeks.forEach((w,i)=> wkColor[w] = w < 1 ? '#B4B2A9' : WEEK_COLORS[i % WEEK_COLORS.length]);
+
+  renderOverview(rows, weeks, wkColor);
+  renderTrue(rows, weeks, wkColor);
+  renderLotus(rows);
+
+  const d = new Date(DATA.generatedAt);
+  document.getElementById('updated').textContent =
+    'ข้อมูล ณ ' + d.getDate() + ' ' + TH_MONTHS[d.getMonth()] + ' ' +
+    String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') +
+    ' · ' + rows.length.toLocaleString() + ' Lead';
+}
+
+// ---------- หน้า 1 ----------
+function renderOverview(rows, weeks, wkColor){
+  set('o-total', rows.length.toLocaleString());
+  // ยอดปิดเน็ตทรูรวม = จากระบบ + ยอดนอกพื้นที่ + ปิดได้จากลูกค้ารอตัดสินใจ
+  // สองก้อนหลังเป็นตัวเลขกรอกมือจากชีต แยกรายละเอียดดูได้ในหน้าทีมทรู
+  setNum('o-true', trueClosedTotal(rows), 'ราย');
+  setNum('o-closed', count(rows, r=>r[C_STATUS]==='ปิดการขายสำเร็จ'), 'ราย');
+  set('o-basket', '฿' + sum(rows, r=>r[C_BASKET]).toLocaleString(undefined,{maximumFractionDigits:0}));
+  setNum('o-sla', count(rows, isSla), 'ราย');
+
+  // กราฟรายสัปดาห์
+  const byWeek = {}; weeks.forEach(w=>byWeek[w]=0);
+  rows.forEach(r=>byWeek[r[C_WEEK]]++);
+  const max = Math.max(1, ...Object.values(byWeek));
+
+  document.getElementById('o-wkchart').innerHTML = weeks.map(w=>`
+    <div class="wkcol">
+      <div class="n">${byWeek[w]}</div>
+      <div class="bar" style="height:${Math.max(2,(byWeek[w]/max)*82)}%; background:${wkColor[w]};"></div>
+    </div>`).join('') || '<div class="empty">ไม่มีข้อมูล</div>';
+
+  document.getElementById('o-wklabels').innerHTML = weeks.map(w=>
+    `<div>${weekName(w)}<br>${weekRange(w)}</div>`).join('');
+
+  // แถบรายสาขา ซ้อนสีตามสัปดาห์
+  const byBranch = {};
+  rows.forEach(r=>{
+    if(!byBranch[r[C_BRANCH]]) byBranch[r[C_BRANCH]] = {total:0, wk:{}};
+    byBranch[r[C_BRANCH]].total++;
+    byBranch[r[C_BRANCH]].wk[r[C_WEEK]] = (byBranch[r[C_BRANCH]].wk[r[C_WEEK]]||0)+1;
+  });
+  const list = Object.entries(byBranch).sort((a,b)=>b[1].total-a[1].total);
+  const bmax = list.length ? list[0][1].total : 1;
+
+  document.getElementById('o-branches').innerHTML = list.map(([bi,v])=>`
+    <div class="row">
+      <div class="nm">${esc(shortBranch(DATA.branches[bi]))}</div>
+      <div class="track">
+        ${weeks.filter(w=>v.wk[w]).map(w=>
+          `<div style="width:${(v.wk[w]/bmax)*100}%; background:${wkColor[w]};"></div>`).join('')}
+      </div>
+      <div class="v">${v.total}</div>
+    </div>`).join('') || '<div class="empty">ไม่มีข้อมูล</div>';
+
+  document.getElementById('o-legend').innerHTML = weeks.map(w=>
+    `<div><span style="background:${wkColor[w]}"></span>${weekName(w)}</div>`).join('');
+}
+
+// ---------- หน้า 2 ----------
+function renderTrue(rows, weeks, wkColor){
+  // ยอดนอกพื้นที่เป็นตัวเลขที่กรอกมือ ไม่ได้แยกรายจังหวัดและไม่ผูกกับช่วงสัปดาห์
+  // จึงแสดงเฉพาะตอนดูภาพรวมทุกจังหวัด ไม่งั้นจะอ่านผิดว่าเป็นยอดของจังหวัดที่เลือก
+  const outside = Number((DATA.manual || {})['ยอดนอกพื้นที่']) || 0;
+  const selProv = document.getElementById('f-prov').value;
+  const showOutside = selProv === '';
+  document.getElementById('t-outside-card').style.display = showOutside ? 'block' : 'none';
+  if(showOutside) setNum('t-outside', outside, 'ราย');
+
+  // ปิดได้จากลูกค้ารอตัดสินใจ กรอกมือแยกรายจังหวัด
+  // เลือกจังหวัดเดียว -> โชว์ของจังหวัดนั้น, เลือกทุกจังหวัด -> รวมทุกจังหวัด
+  const mp = DATA.manualProv || {};
+  const decided = selProv === ''
+    ? Object.values(mp).reduce((a,b)=>a+(Number(b)||0),0)
+    : (Number(mp[selProv]) || 0);
+  setNum('t-decided', decided, 'ราย');
+
+  const people = new Set(rows.filter(r=>r[C_SALE]>=0).map(r=>r[C_SALE]));
+  setNum('t-people', people.size, 'คน');
+  set('t-avg', people.size ? (rows.length/people.size).toFixed(1) : '0');
+  setNum('t-closed', count(rows, r=>r[C_TRUE]==='ปิดเน็ตทรูได้'), 'ราย');
+  setNum('t-wait', count(rows, r=>r[C_TRUE]==='รอตัดสินใจเน็ตทรู'), 'ราย');
+
+  // ---- กราฟแท่ง: ปิดเน็ตทรูได้ รายสัปดาห์ ----
+  // ใช้สีชุดเดียวกับกราฟสัปดาห์ในหน้าแรก จะได้เทียบข้ามหน้าได้
+  const wkClosed = {}, wkLeads = {};
+  weeks.forEach(w=>{ wkClosed[w]=0; wkLeads[w]=0; });
+  rows.forEach(r=>{
+    wkLeads[r[C_WEEK]]++;
+    if(r[C_TRUE]==='ปิดเน็ตทรูได้') wkClosed[r[C_WEEK]]++;
+  });
+  const wcmax = Math.max(1, ...Object.values(wkClosed));
+  const anyWeekClosed = Object.values(wkClosed).some(v=>v>0);
+
+  document.getElementById('t-wkchart').innerHTML = weeks.length ? weeks.map(w=>`
+    <div class="wkcol">
+      <div class="n" style="${wkClosed[w]?'color:var(--lotus-green); font-weight:600;':''}">${wkClosed[w]}</div>
+      <div class="bar" style="height:${anyWeekClosed ? (wkClosed[w]/wcmax)*82 : 0}%; background:${wkColor[w]};"></div>
+    </div>`).join('') : '<div class="empty">ไม่มีข้อมูล</div>';
+
+  document.getElementById('t-wklabels').innerHTML = weeks.map(w=>
+    `<div>${weekName(w)}<br><span style="opacity:.65">จาก ${wkLeads[w]}</span></div>`).join('');
+
+  // ---- กราฟแท่ง: ปิดเน็ตทรูได้ แยกตามสาขาโลตัส ----
+  // ใช้ BranchName ที่อยู่ในชีตเดียวกับ TrueStatus จึงไม่ต้องจับคู่ข้ามชีต
+  const byBr = {};
+  rows.forEach(r=>{
+    const b = r[C_BRANCH];
+    if(!byBr[b]) byBr[b] = {leads:0, closed:0};
+    byBr[b].leads++;
+    if(r[C_TRUE]==='ปิดเน็ตทรูได้') byBr[b].closed++;
+  });
+
+  // เรียงจากปิดได้มากไปน้อย แสดงสูงสุด 8 สาขาให้พอดีจอมือถือ
+  const brs = Object.entries(byBr)
+    .sort((a,b) => b[1].closed - a[1].closed || b[1].leads - a[1].leads)
+    .slice(0, 8);
+  const bcmax = Math.max(1, ...brs.map(b=>b[1].closed));
+  const anyClosed = brs.some(b=>b[1].closed > 0);
+
+  document.getElementById('t-provs').innerHTML = brs.length ? `
+    <div class="wkchart" style="height:104px;">
+      ${brs.map(([bi,v])=>`
+        <div class="wkcol">
+          <div class="n" style="${v.closed?'color:var(--lotus-green); font-weight:600;':''}">${v.closed}</div>
+          <div class="bar" style="height:${anyClosed ? (v.closed/bcmax)*80 : 0}%; background:#1D9E75;"></div>
+        </div>`).join('')}
+    </div>
+    <div class="wklabels">
+      ${brs.map(([bi,v])=>`<div>${esc(shortBranch(DATA.branches[bi]))}<br><span style="opacity:.65">จาก ${v.leads}</span></div>`).join('')}
+    </div>` + (anyClosed ? '' : '<div class="empty">ยังไม่มีการปิดเน็ตทรูในช่วงที่เลือก</div>')
+    : '<div class="empty">ไม่มีข้อมูล</div>';
+
+  // ---- ตารางอันดับเซล (แสดง 10 อันดับแรก) ----
+  const by = {};
+  rows.forEach(r=>{
+    if(r[C_SALE]<0) return;
+    if(!by[r[C_SALE]]) by[r[C_SALE]] = {leads:0, trueClosed:0};
+    by[r[C_SALE]].leads++;
+    if(r[C_TRUE]==='ปิดเน็ตทรูได้') by[r[C_SALE]].trueClosed++;
+  });
+  const list = Object.entries(by).sort((a,b)=>b[1].leads-a[1].leads);
+  const top10 = list.slice(0,10);
+  const top5sum = list.slice(0,5).reduce((s,x)=>s+x[1].leads,0);
+  document.getElementById('t-share').textContent =
+    rows.length ? `Top 5 คิดเป็น ${Math.round(top5sum/rows.length*100)}% ของ Lead ทั้งหมด · เซลทั้งหมด ${list.length} คน` : '';
+
+  document.getElementById('t-table').innerHTML = top10.map(([si,v],i)=>{
+    const s = DATA.sales[si];
+    return `<tr>
+      <td class="rank">${i+1}</td>
+      <td>
+        <div class="nm2">${esc(s.n||'ไม่ระบุชื่อ')}</div>
+        <div class="sub2">${esc(s.r||'-')} · ${esc(shortBranch(DATA.branches[s.b]))}</div>
+      </td>
+      <td style="font-weight:600;">${v.leads}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="3" class="empty">ไม่มีข้อมูล</td></tr>';
+}
+
+// ---------- หน้า 3 ----------
+function renderLotus(rows){
+  const contacted = count(rows, r=>!isPending(r[C_STATUS]));
+  const closed   = count(rows, r=>inList(r[C_STATUS], CLOSED_STATUSES));
+  const progress = count(rows, r=>inList(r[C_STATUS], PROGRESS_STATUSES));
+  const member   = count(rows, r=>inList(r[C_STATUS], MEMBER_STATUSES));
+  const lost     = count(rows, r=>inList(r[C_STATUS], LOST_STATUSES));
+  const dup      = count(rows, r=>inList(r[C_STATUS], DUP_STATUSES));
+  const pending  = count(rows, r=>isPending(r[C_STATUS]));
+  const sla      = count(rows, isSla);
+  // สถานะที่ไม่เข้ากลุ่มไหนเลย กันไม่ให้ตัวเลขในแถบรวมกันไม่ครบ 100%
+  const others   = contacted - closed - progress - member - lost - dup;
+
+  setNum('l-contacted', contacted, 'ราย');
+  setNum('l-closed', closed, 'ราย');
+  setNum('l-progress', progress, 'ราย');
+  setNum('l-member', member, 'ราย');
+  setNum('l-lost', lost, 'ราย');
+  setNum('l-dup', dup, 'ราย');
+  setNum('l-pending', pending, 'ราย');
+  setNum('l-sla', sla, 'ราย');
+
+  const tot = Math.max(1, rows.length);
+  const seg = [
+    { n:'ปิดการขายสำเร็จ',        v:closed,   c:'#1D9E75' },
+    { n:'อยู่ระหว่างดำเนินงาน',    v:progress, c:'#378ADD' },
+    { n:'เป็นลูกค้าอยู่แล้ว',      v:member,   c:'#8B5CF6' },
+    { n:'ปิดไม่สำเร็จ',           v:lost,     c:'#C25A4A' },
+    { n:'หลีดซ้ำ',               v:dup,      c:'#8A8880' },
+    { n:'อื่นๆ',                 v:others,   c:'#D6D3CC' },
+    { n:'รอดำเนินการ',            v:pending,  c:'#E0A020' }
+  ];
+  document.getElementById('l-stack').innerHTML =
+    seg.map(x=>`<div style="width:${Math.max(0,x.v)/tot*100}%; background:${x.c};"></div>`).join('');
+  document.getElementById('l-legend').innerHTML =
+    seg.filter(x=>x.v>0).map(x=>
+      `<div><span style="background:${x.c}"></span>${x.n} ${x.v}</div>`).join('');
+
+  const by = {};
+  rows.forEach(r=>{
+    const b = r[C_BRANCH];
+    if(!by[b]) by[b] = {total:0, contacted:0, member:0, pending:0, sla:0};
+    by[b].total++;
+    if(!isPending(r[C_STATUS])) by[b].contacted++; else by[b].pending++;
+    if(inList(r[C_STATUS], MEMBER_STATUSES)) by[b].member++;
+    if(isSla(r)) by[b].sla++;
+  });
+
+  document.getElementById('l-table').innerHTML =
+    Object.entries(by).sort((a,b)=>b[1].total-a[1].total).map(([bi,v])=>{
+      const pct = Math.round(v.contacted/v.total*100);
+      return `<tr>
+        <td>
+          <div class="nm2">${esc(shortBranch(DATA.branches[bi]))}</div>
+          <div class="sub2" style="color:${pct>=20?'var(--lotus-green)':'var(--muted)'}">ดำเนินการแล้ว ${pct}%</div>
+        </td>
+        <td>${v.total}</td>
+        <td class="${v.member?'':'zero'}" style="${v.member?'color:#8B5CF6;':''}">${v.member}</td>
+        <td>${v.pending}</td>
+        <td class="${v.sla?'hot':'zero'}">${v.sla}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="5" class="empty">ไม่มีข้อมูล</td></tr>';
+}
+
+// ================= ตัวช่วย =================
+// ยอดปิดเน็ตทรูรวมทุกช่องทาง
+// ยอดนอกพื้นที่เป็นตัวเลขระดับประเทศ จึงนับเฉพาะตอนดูภาพรวมทุกจังหวัด
+function trueClosedTotal(rows){
+  const fromSystem = count(rows, r=>r[C_TRUE]==='ปิดเน็ตทรูได้');
+  const selProv = document.getElementById('f-prov').value;
+  const mp = DATA.manualProv || {};
+  const decided = selProv === ''
+    ? Object.values(mp).reduce((a,b)=>a+(Number(b)||0),0)
+    : (Number(mp[selProv]) || 0);
+  const outside = selProv === '' ? (Number((DATA.manual || {})['ยอดนอกพื้นที่']) || 0) : 0;
+  return fromSystem + decided + outside;
+}
+
+function isSla(r){ return isPending(r[C_STATUS]) && r[C_AGE] > SLA_DAYS; }
+function count(rows, fn){ return rows.filter(fn).length; }
+function sum(rows, fn){ return rows.reduce((s,r)=>s+(fn(r)||0),0); }
+function set(id, v){ document.getElementById(id).textContent = v; }
+function setNum(id, v, unit){
+  document.getElementById(id).innerHTML = v.toLocaleString() + ` <span class="unit"${unit==='ราย'?'':''}>${unit}</span>`;
+}
+function weekName(w){ return w < 1 ? 'ก่อนเริ่ม' : 'สัปดาห์ ' + w; }
+function weekRange(w){
+  const s = new Date(WEEK1_START.getTime() + (w-1)*7*86400000);
+  const e = new Date(s.getTime() + 6*86400000);
+  return s.getDate() + (s.getMonth()!==e.getMonth() ? ' '+TH_MONTHS[s.getMonth()] : '') +
+         '–' + e.getDate() + ' ' + TH_MONTHS[e.getMonth()];
+}
+function shortBranch(n){
+  // ตัดคำนำหน้าที่ซ้ำกันทุกสาขาออกตอนแสดงผล ให้เหลือแค่ชื่อสาขา
+  return String(n||'').replace(/^(แม็คโคร|แมคโคร|Makro)\s*(สาขา\s*)?/i,'').trim() || 'ไม่ระบุ';
+}
+function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ================= แท็บ =================
+document.querySelector('.tabs').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('p-' + b.dataset.p).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+load(false);
+</script>
+</body>
+</html>
